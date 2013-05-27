@@ -15,6 +15,9 @@ namespace Ejik
     public partial class Form1 : Form
     {
         public static List<String> qq = new List<string>();
+        public static Label lbl1;
+        public static Label lbl2;
+
         public Form1()
         {
             InitializeComponent();
@@ -27,6 +30,7 @@ namespace Ejik
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = Application.StartupPath;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
 
@@ -39,11 +43,15 @@ namespace Ejik
 
             //poekhali!
             moveTimer.Start();
+
+            //looks like this is needed for logging
+            lbl1 = this.label1;
+            lbl2 = this.label2;
         }
 
         private static Boolean IsPicture(string fileName)
         {
-            string ext = fileName.Substring(fileName.LastIndexOf("."));
+            string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
             if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
             {
                 return true;
@@ -53,18 +61,21 @@ namespace Ejik
 
         private static void OnChanged(Object source, FileSystemEventArgs e)
         {
-            if (e.Name.LastIndexOf(".") != -1) 
+            if (e.Name.LastIndexOf(".") != -1 && IsPicture(e.Name) && !qq.Contains(e.FullPath)) 
             {
-                if (IsPicture(e.Name))
-                    qq.Add(e.FullPath);
+                qq.Add(e.FullPath);
             }
         }
 
         private void moveTimer_Tick(object sender, EventArgs e)
         {
+            lbl2.Text = "Files pending:" + Environment.NewLine;
             if (qq.Count != 0)
                 for (int i = 0; i < qq.Count; i++)
+                {
+                    lbl2.Text += qq[i].Substring(qq[i].LastIndexOf("\\") + 1) + Environment.NewLine;
                     MoveFile(qq[i]);
+                }
         }
 
         private static void MoveFile(String path)
@@ -73,7 +84,7 @@ namespace Ejik
             {
                 if (File.Exists(path))
                 {
-                    string fileName = path.Substring(path.LastIndexOf("\\"));
+                    string fileName = path.Substring(path.LastIndexOf("\\") + 1);
                     string fileExt = fileName.Substring(fileName.LastIndexOf("."));
                     fileName = fileName.Substring(0, fileName.LastIndexOf("."));
                     string fPath = Application.StartupPath + "\\_jpg\\";
@@ -83,13 +94,19 @@ namespace Ejik
                     {
                         path2 = fPath + fileName + " (" + i.ToString() + ")" + fileExt;
                     }
-                    File.Move(path, path2);
+                    if (File.GetLastWriteTime(path).AddSeconds(10) < DateTime.Now) //moving file only if last write was 10 seconds ago or farther
+                    {
+                        File.Move(path, path2);
+                        qq.Remove(path);
+                        lbl1.Text = "Successfully moved " + fileName + fileExt + Environment.NewLine + lbl1.Text;
+                        lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
+                    }
                 }
-                qq.Remove(path);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Move failed! {0}, {1}", ex.HResult, ex.ToString());
+                lbl1.Text = "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + lbl1.Text;
+                lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
             }
         }
     }
