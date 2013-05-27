@@ -23,25 +23,40 @@ namespace Ejik
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private void Form1_Load(object sender, EventArgs e)
         {
+            //configuring and starting watcher:
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = Application.StartupPath;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
+
+            //searching for pictures that are already exists:
+            foreach (string fileName in Directory.EnumerateFiles(Application.StartupPath))
+            {
+                if (IsPicture(fileName))
+                    qq.Add(fileName);
+            }
+
+            //poekhali!
             moveTimer.Start();
+        }
+
+        private static Boolean IsPicture(string fileName)
+        {
+            string ext = fileName.Substring(fileName.LastIndexOf("."));
+            if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
+            {
+                return true;
+            }
+            return false;
         }
 
         private static void OnChanged(Object source, FileSystemEventArgs e)
         {
-            string ext;
             if (e.Name.LastIndexOf(".") != -1) 
             {
-                ext = e.Name.Substring(e.Name.LastIndexOf("."));
-                if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
-                {
-                    //MessageBox.Show("New picture! " + e.Name);
+                if (IsPicture(e.Name))
                     qq.Add(e.FullPath);
-                }
             }
         }
 
@@ -56,17 +71,20 @@ namespace Ejik
         {
             try
             {
-                string fileName = path.Substring(path.LastIndexOf("\\"));
-                string fileExt = fileName.Substring(fileName.LastIndexOf("."));
-                fileName = fileName.Substring(0, fileName.LastIndexOf("."));
-                string fPath = Application.StartupPath + "\\_jpg\\";
-                if (!Directory.Exists(fPath)) Directory.CreateDirectory(fPath);
-                string path2 = fPath + fileName + fileExt;
-                for (int i = 1; File.Exists(path2); i++)
+                if (File.Exists(path))
                 {
-                    path2 = fPath + fileName + " (" + i.ToString() + ")" + fileExt;
+                    string fileName = path.Substring(path.LastIndexOf("\\"));
+                    string fileExt = fileName.Substring(fileName.LastIndexOf("."));
+                    fileName = fileName.Substring(0, fileName.LastIndexOf("."));
+                    string fPath = Application.StartupPath + "\\_jpg\\";
+                    if (!Directory.Exists(fPath)) Directory.CreateDirectory(fPath);
+                    string path2 = fPath + fileName + fileExt;
+                    for (int i = 1; File.Exists(path2); i++)
+                    {
+                        path2 = fPath + fileName + " (" + i.ToString() + ")" + fileExt;
+                    }
+                    File.Move(path, path2);
                 }
-                File.Move(path, path2);
                 qq.Remove(path);
             }
             catch (Exception ex)
