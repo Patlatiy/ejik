@@ -47,6 +47,9 @@ namespace Ejik
             //looks like this is needed for logging
             lbl1 = this.label1;
             lbl2 = this.label2;
+
+            //notifyIcon settings
+            myNotifyIcon.Text = Application.ProductName + Environment.NewLine + "Watching: " + watcher.Path;
         }
 
         private static Boolean IsPicture(string fileName)
@@ -107,6 +110,22 @@ namespace Ejik
             {
                 lbl1.Text = "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + lbl1.Text;
                 lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
+            }
+        }
+
+        private void myNotifyIcon_DoubleClick(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            myNotifyIcon.Visible = false;
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                this.Hide();
+                myNotifyIcon.Visible = true;
             }
         }
     }
