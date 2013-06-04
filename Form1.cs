@@ -9,14 +9,16 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Security.Permissions;
+using System.Configuration;
 
 namespace Ejik
 {
     public partial class Form1 : Form
     {
         public static List<String> qq = new List<string>();
-        public static Label lbl1;
-        public static Label lbl2;
+        private static Label lbl1;
+        private static Label lbl2;
+        private Watcher testWatcher;
 
         public Form1()
         {
@@ -26,18 +28,14 @@ namespace Ejik
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private void Form1_Load(object sender, EventArgs e)
         {
-            //configuring and starting watcher:
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = Application.StartupPath;
-            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            watcher.Changed += new FileSystemEventHandler(OnChanged);
-            watcher.Created += new FileSystemEventHandler(OnChanged);
-            watcher.EnableRaisingEvents = true;
+            loadSettings();
+            //creating watcher
+            testWatcher = new Watcher(Application.StartupPath, Application.StartupPath + "\\_jpg\\", "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
 
             //searching for pictures that are already exists:
             foreach (string fileName in Directory.EnumerateFiles(Application.StartupPath))
             {
-                if (IsPicture(fileName))
+                if (Watcher.IsPicture(fileName))
                     qq.Add(fileName);
             }
 
@@ -49,10 +47,10 @@ namespace Ejik
             lbl2 = this.label2;
 
             //notifyIcon settings
-            myNotifyIcon.Text = Application.ProductName + Environment.NewLine + "Watching: " + watcher.Path;
+            myNotifyIcon.Text = Application.ProductName;
         }
 
-        private static Boolean IsPicture(string fileName)
+        public static Boolean IsPicture(string fileName)
         {
             string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
             if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
@@ -60,14 +58,6 @@ namespace Ejik
                 return true;
             }
             return false;
-        }
-
-        private static void OnChanged(Object source, FileSystemEventArgs e)
-        {
-            if (e.Name.LastIndexOf(".") != -1 && IsPicture(e.Name) && !qq.Contains(e.FullPath)) 
-            {
-                qq.Add(e.FullPath);
-            }
         }
 
         private void moveTimer_Tick(object sender, EventArgs e)
@@ -115,9 +105,7 @@ namespace Ejik
 
         private void myNotifyIcon_DoubleClick(object sender, EventArgs e)
         {
-            this.Show();
-            this.WindowState = FormWindowState.Normal;
-            myNotifyIcon.Visible = false;
+            statusToolStripMenuItem_Click(sender, e);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -125,8 +113,44 @@ namespace Ejik
             if (this.WindowState == FormWindowState.Minimized)
             {
                 this.Hide();
-                myNotifyIcon.Visible = true;
+                //myNotifyIcon.Visible = true;
             }
+        }
+
+        private void statusToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            this.BringToFront();
+            //myNotifyIcon.Visible = false;
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (FormSettings.ActiveForm == null)
+            {
+                Form frmSettings = new FormSettings();
+                frmSettings.Show();
+            }
+            else 
+            {
+                FormSettings.ActiveForm.Show();
+            }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        public void loadSettings()
+        {
+            
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            myNotifyIcon.Visible = false;
         }
     }
 }
