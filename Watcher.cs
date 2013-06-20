@@ -70,9 +70,19 @@ namespace Ejik
             return false;
         }
 
-        private static void OnChanged(Object source, FileSystemEventArgs e)
+        public static Boolean ExtMatch(string fileName, string[] filters)
         {
-            if (e.Name.LastIndexOf(".") != -1 && IsPicture(e.Name) && !Form1.qq.Contains(e.FullPath))
+            string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
+            foreach (string filter in filters)
+            {
+                if (ext == filter) return true;
+            }
+            return false;
+        }
+
+        private void OnChanged(Object source, FileSystemEventArgs e)
+        {
+            if (e.Name.LastIndexOf(".") != -1 && ExtMatch(e.Name, this.filters) && !Form1.qq.Contains(e.FullPath))
             {
                 Form1.qq.Add(e.FullPath);
             }
