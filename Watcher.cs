@@ -9,12 +9,46 @@ using System.Windows.Forms;
 
 namespace Ejik
 {
-    class Watcher
+    public class Watcher
     {
         private string watchPath;
         private string movePath;
         private string[] filters;
         private FileSystemWatcher watcher = new FileSystemWatcher();
+
+        public static List<Watcher> AllOfThem = new List<Watcher>();
+        public string WatchPath
+        {
+            get { return watchPath; }
+            set 
+            { 
+                watchPath = value;
+                watcher.EnableRaisingEvents = false;
+                watcher.Path = value;
+                watcher.EnableRaisingEvents = true;
+            }
+        }
+
+        public string MovePath
+        {
+            get { return movePath; }
+            set { movePath = value; }
+        }
+
+        public string filter
+        {
+            get
+            {
+                string tmp = "";
+                for (int i = 0; i <= filters.Length - 1; i++)
+                {
+                    tmp += '.' + filters[i] + '|';
+                }
+                tmp = tmp.Remove(tmp.Length - 1);
+                return tmp;
+            }
+            set { this.filters = parseFilter(value); }
+        }
 
         public Watcher(string wPath, string mPath, string filter)
         {
@@ -23,11 +57,12 @@ namespace Ejik
             filters = parseFilter(filter);
 
             //configuring and starting watcher:
-            watcher.Path = Application.StartupPath;
+            watcher.Path = watchPath;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
+            AllOfThem.Add(this);
         }
 
         private string[] parseFilter(string filter)
