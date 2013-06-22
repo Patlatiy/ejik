@@ -41,13 +41,13 @@
             this.txtMovePath = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnApply = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOK
             // 
-            this.btnOK.Enabled = false;
-            this.btnOK.Location = new System.Drawing.Point(244, 141);
+            this.btnOK.Location = new System.Drawing.Point(163, 141);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 0;
@@ -155,6 +155,16 @@
             this.button1.Text = "+";
             this.button1.UseVisualStyleBackColor = true;
             // 
+            // btnApply
+            // 
+            this.btnApply.Location = new System.Drawing.Point(244, 141);
+            this.btnApply.Name = "btnApply";
+            this.btnApply.Size = new System.Drawing.Size(75, 23);
+            this.btnApply.TabIndex = 0;
+            this.btnApply.Text = "Apply";
+            this.btnApply.UseVisualStyleBackColor = true;
+            this.btnApply.Click += new System.EventHandler(this.btnApply_Click);
+            // 
             // FormSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -165,6 +175,7 @@
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.comboRules);
             this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.btnApply);
             this.Controls.Add(this.btnOK);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -193,5 +204,6 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtWatchPath;
+        private System.Windows.Forms.Button btnApply;
     }
 }

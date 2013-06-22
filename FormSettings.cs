@@ -28,7 +28,7 @@ namespace Ejik
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-
+            btnApply_Click(sender, e);
             this.Close();
         }
 
@@ -42,6 +42,13 @@ namespace Ejik
             txtWatchPath.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath;
             txtMovePath.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath;
             txtFilter.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter;
+        }
+
+        private void btnApply_Click(object sender, EventArgs e)
+        {
+            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
+            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
+            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter = txtFilter.Text;
         }
     }
 

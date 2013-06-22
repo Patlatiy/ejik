@@ -22,10 +22,8 @@ namespace Ejik
             get { return watchPath; }
             set 
             { 
-                watchPath = value;
-                watcher.EnableRaisingEvents = false;
-                watcher.Path = value;
-                watcher.EnableRaisingEvents = true;
+                watchPath = watcher.Path = value;
+                ScanDirectory(watchPath, this.filters);
             }
         }
 
@@ -52,17 +50,18 @@ namespace Ejik
 
         public Watcher(string wPath, string mPath, string filter)
         {
-            watchPath = wPath;
-            movePath = mPath;
             filters = parseFilter(filter);
+            MovePath = mPath;
+            WatchPath = wPath;
 
             //configuring and starting watcher:
-            watcher.Path = watchPath;
+            //watcher.Path is already set in WatchPath property (see above)
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
             AllOfThem.Add(this);
+            
         }
 
         private string[] parseFilter(string filter)
@@ -95,19 +94,9 @@ namespace Ejik
             return result2;
         }
 
-        public static Boolean IsPicture(string fileName)
-        {
-            string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
-            if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
-            {
-                return true;
-            }
-            return false;
-        }
-
         public static Boolean ExtMatch(string fileName, string[] filters)
         {
-            string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
+            string ext = fileName.Substring(fileName.LastIndexOf(".") + 1).ToLower();
             foreach (string filter in filters)
             {
                 if (ext == filter) return true;
@@ -120,6 +109,16 @@ namespace Ejik
             if (e.Name.LastIndexOf(".") != -1 && ExtMatch(e.Name, this.filters) && !Form1.qq.Contains(e.FullPath))
             {
                 Form1.qq.Add(e.FullPath);
+            }
+        }
+
+        private static void ScanDirectory(string dir, string[] filters)
+        {
+            //searching for files that are already exists:
+            foreach (string fileName in Directory.EnumerateFiles(dir))
+            {
+                if (ExtMatch(fileName, filters))
+                    Form1.qq.Add(fileName);
             }
         }
     }

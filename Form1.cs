@@ -32,12 +32,7 @@ namespace Ejik
             //creating watcher
             testWatcher = new Watcher(Application.StartupPath, Application.StartupPath + "\\_jpg\\", "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
 
-            //searching for pictures that are already exists:
-            foreach (string fileName in Directory.EnumerateFiles(Application.StartupPath))
-            {
-                if (Watcher.IsPicture(fileName))
-                    qq.Add(fileName);
-            }
+
 
             //poekhali!
             moveTimer.Start();
@@ -48,16 +43,6 @@ namespace Ejik
 
             //notifyIcon settings
             myNotifyIcon.Text = Application.ProductName;
-        }
-
-        public static Boolean IsPicture(string fileName)
-        {
-            string ext = fileName.Substring(fileName.LastIndexOf(".")).ToLower();
-            if (ext == ".jpg" | ext == ".jpeg" | ext == ".gif" | ext == ".png" | ext == ".bmp")
-            {
-                return true;
-            }
-            return false;
         }
 
         private void moveTimer_Tick(object sender, EventArgs e)
