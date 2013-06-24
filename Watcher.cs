@@ -114,12 +114,62 @@ namespace Ejik
 
         private static void ScanDirectory(string dir, string[] filters)
         {
-            //searching for files that are already exists:
+            //searching for files that already exist:
             foreach (string fileName in Directory.EnumerateFiles(dir))
             {
                 if (ExtMatch(fileName, filters))
                     Form1.qq.Add(fileName);
             }
+        }
+
+        public static void SaveToSettings()
+        {
+            //this is pretty dumb but I still don't know how to do it better
+            string[] blankStringArray = new string[64];
+            for (int i = 0; i <= 63; i++)
+            {
+                blankStringArray[i] = "";
+            }
+            blankStringArray.CopyTo(Form1.MySettings.WatchPaths, 0);
+            blankStringArray.CopyTo(Form1.MySettings.MovePaths, 0);
+            blankStringArray.CopyTo(Form1.MySettings.Filters, 0);
+
+            int index = 0;
+            foreach (Watcher watcher in AllOfThem)
+            {
+                Form1.MySettings.WatchPaths[index] = watcher.WatchPath;
+                Form1.MySettings.MovePaths[index] = watcher.MovePath;
+                Form1.MySettings.Filters[index] = watcher.filter;
+                index++;
+            }
+            Form1.MySettings.Save();
+        }
+
+        public static void LoadFromSettings()
+        {
+            //cleaning:
+            foreach (Watcher watcher in AllOfThem)
+            {
+                watcher.Dispose();
+            }
+            AllOfThem.Clear();
+
+
+            //Watcher testWatcher = new Watcher(Application.StartupPath, Application.StartupPath + "\\_jpg\\", "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
+
+            //loading:
+            for (int i = 0; i < 64; i++)
+            {
+                try { Watcher newWatcher = new Watcher(Form1.MySettings.WatchPaths[i], Form1.MySettings.MovePaths[i], Form1.MySettings.Filters[i]); }
+                catch { break; }
+            }
+        }
+
+        public void Dispose()
+        {
+            watchPath = null;
+            movePath = null;
+            filters = null;
         }
     }
 }

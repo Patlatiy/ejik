@@ -18,7 +18,7 @@ namespace Ejik
         public static List<String> qq = new List<string>();
         private static Label lbl1;
         private static Label lbl2;
-        private Watcher testWatcher;
+        public static EjikSettings MySettings = new EjikSettings();
 
         public Form1()
         {
@@ -29,17 +29,28 @@ namespace Ejik
         private void Form1_Load(object sender, EventArgs e)
         {
             loadSettings();
-            //creating watcher
-            testWatcher = new Watcher(Application.StartupPath, Application.StartupPath + "\\_jpg\\", "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
 
-
-
-            //poekhali!
             moveTimer.Start();
-
-            //looks like this is needed for logging
             lbl1 = this.label1;
             lbl2 = this.label2;
+
+            Watcher.LoadFromSettings();
+
+            string[] testString = new string[64];
+            string test = "";
+            try
+            {
+                for (int i = 0; i < 64; i++)
+                {
+                    //testString[i] = "test" + i.ToString();
+                    testString[i] = MySettings.WatchPaths[i];
+                    test += testString[i] + Environment.NewLine;
+                }
+            }
+            catch { }
+            //MySettings.testString = testString;
+            //MySettings.Save();
+            MessageBox.Show(test);
 
             //notifyIcon settings
             myNotifyIcon.Text = Application.ProductName;

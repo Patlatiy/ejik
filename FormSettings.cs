@@ -49,7 +49,8 @@ namespace Ejik
             ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
             ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
             ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter = txtFilter.Text;
-        }
+            Watcher.SaveToSettings();
+        }   
     }
 
     public class ComboWatcherItem
