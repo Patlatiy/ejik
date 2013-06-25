@@ -15,10 +15,14 @@ namespace Ejik
 {
     public partial class Form1 : Form
     {
-        public static List<String> qq = new List<string>();
+        public static List<String> queFile = new List<string>();
+        public static List<String> queDir = new List<string>();
         private static Label lbl1;
         private static Label lbl2;
         public static EjikSettings MySettings = new EjikSettings();
+        public static Form1 LastInstance;
+
+       
 
         public Form1()
         {
@@ -28,46 +32,36 @@ namespace Ejik
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private void Form1_Load(object sender, EventArgs e)
         {
+            LastInstance = this;
             loadSettings();
-
             moveTimer.Start();
             lbl1 = this.label1;
             lbl2 = this.label2;
-
             Watcher.LoadFromSettings();
+            SetTooltip();
 
-            string[] testString = new string[64];
-            string test = "";
-            try
-            {
-                for (int i = 0; i < 64; i++)
-                {
-                    //testString[i] = "test" + i.ToString();
-                    testString[i] = MySettings.WatchPaths[i];
-                    test += testString[i] + Environment.NewLine;
-                }
-            }
-            catch { }
-            //MySettings.testString = testString;
-            //MySettings.Save();
-            MessageBox.Show(test);
-
-            //notifyIcon settings
-            myNotifyIcon.Text = Application.ProductName;
+            Timer startupTimer = new Timer();
+            startupTimer.Interval = 100;
+            startupTimer.Tick += StartupTimer_Tick;
+            startupTimer.Start();
         }
 
         private void moveTimer_Tick(object sender, EventArgs e)
         {
             lbl2.Text = "Files pending:" + Environment.NewLine;
-            if (qq.Count != 0)
-                for (int i = 0; i < qq.Count; i++)
+            if (queFile.Count != 0)
+                for (int i = 0; i < queFile.Count; i++)
                 {
-                    lbl2.Text += qq[i].Substring(qq[i].LastIndexOf("\\") + 1) + Environment.NewLine;
-                    MoveFile(qq[i]);
+                    lbl2.Text += queFile[i].Substring(queFile[i].LastIndexOf("\\") + 1) + Environment.NewLine;
+                    if (MoveFile(queFile[i], queDir[i]))
+                    {
+                        queDir.RemoveAt(i);
+                        queFile.RemoveAt(i);
+                    }
                 }
         }
 
-        private static void MoveFile(String path)
+        private static Boolean MoveFile(string path, string movePath)
         {
             try
             {
@@ -76,19 +70,18 @@ namespace Ejik
                     string fileName = path.Substring(path.LastIndexOf("\\") + 1);
                     string fileExt = fileName.Substring(fileName.LastIndexOf("."));
                     fileName = fileName.Substring(0, fileName.LastIndexOf("."));
-                    string fPath = Application.StartupPath + "\\_jpg\\";
-                    if (!Directory.Exists(fPath)) Directory.CreateDirectory(fPath);
-                    string path2 = fPath + fileName + fileExt;
+                    if (!Directory.Exists(movePath)) Directory.CreateDirectory(movePath);
+                    string path2 = movePath + "\\" + fileName + fileExt;
                     for (int i = 1; File.Exists(path2); i++)
                     {
-                        path2 = fPath + fileName + " (" + i.ToString() + ")" + fileExt;
+                        path2 = movePath + fileName + " (" + i.ToString() + ")" + fileExt;
                     }
                     if (File.GetLastWriteTime(path).AddSeconds(10) < DateTime.Now) //moving file only if last write was 10 seconds ago or farther
                     {
                         File.Move(path, path2);
-                        qq.Remove(path);
                         lbl1.Text = "Successfully moved " + fileName + fileExt + Environment.NewLine + lbl1.Text;
                         lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
+                        return true;
                     }
                 }
             }
@@ -97,6 +90,7 @@ namespace Ejik
                 lbl1.Text = "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + lbl1.Text;
                 lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
             }
+            return false;
         }
 
         private void myNotifyIcon_DoubleClick(object sender, EventArgs e)
@@ -147,6 +141,21 @@ namespace Ejik
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             myNotifyIcon.Visible = false;
+        }
+
+        public void SetTooltip()
+        {
+            string tooltip = Application.ProductName + " version " + Application.ProductVersion;
+            if (Watcher.AllOfThem.Count > 0)
+                tooltip += Environment.NewLine + "Directories watching: " + Watcher.AllOfThem.Count.ToString();
+            myNotifyIcon.Text = tooltip;
+        }
+
+        private void StartupTimer_Tick(object sender, EventArgs e)
+        {
+            this.Hide();
+            ((Timer)sender).Stop();
+            ((Timer)sender).Dispose();
         }
     }
 }

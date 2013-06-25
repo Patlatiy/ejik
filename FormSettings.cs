@@ -7,11 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace Ejik
 {
     public partial class FormSettings : Form
     {
+        Microsoft.Win32.RegistryKey rkApp = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
         public FormSettings()
         {
             InitializeComponent();
@@ -19,6 +22,21 @@ namespace Ejik
 
         private void FormSettings_Load(object sender, EventArgs e)
         {
+            FillRules();
+
+            if (rkApp.GetValue("Ejik") == null)
+            {
+                chkStartup.Checked = false;
+            }
+            else
+            {
+                chkStartup.Checked = true;
+            }
+        }
+
+        private void FillRules()
+        {
+            comboRules.Items.Clear();
             foreach (Watcher watcher in Watcher.AllOfThem)
             {
                 ComboWatcherItem tmpItem = new ComboWatcherItem(watcher.WatchPath, watcher);
@@ -46,11 +64,83 @@ namespace Ejik
 
         private void btnApply_Click(object sender, EventArgs e)
         {
-            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
-            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
-            ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter = txtFilter.Text;
-            Watcher.SaveToSettings();
-        }   
+            if (comboRules.SelectedIndex != -1)
+            {
+                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
+                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
+                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter = txtFilter.Text;
+                Watcher.SaveToSettings();
+
+                //black magic here:
+                ((ComboWatcherItem)comboRules.SelectedItem).Text = txtWatchPath.Text;
+                typeof(ComboBox).InvokeMember("RefreshItems", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.InvokeMethod, null, comboRules, new object[] { });
+            }
+
+            if (chkStartup.Checked)
+            {
+                rkApp.SetValue("Ejik", Application.ExecutablePath.ToString());
+            }
+            else
+            {
+                rkApp.DeleteValue("Ejik", false);
+            }
+
+            Form1.LastInstance.SetTooltip();
+        }
+
+        private void btnAddRule_Click(object sender, EventArgs e)
+        {
+            Watcher newWatcher = new Watcher(Application.StartupPath, Path.Combine(Application.StartupPath, "Moved by Ejik"), "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
+            ComboWatcherItem newItem = new ComboWatcherItem(newWatcher.WatchPath, newWatcher);
+            comboRules.Items.Add(newItem);
+            comboRules.SelectedItem = newItem;
+        }
+
+        private void btnRemoveRule_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Delete this rule?", "Rule deletion", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+            {
+                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Dispose();
+                Watcher.SaveToSettings();
+                comboRules.Items.Remove(comboRules.SelectedItem);
+                txtFilter.Text = "";
+                txtMovePath.Text = "";
+                txtWatchPath.Text = "";
+            }
+        }
+
+        private void btnSelectWatchPath_Click(object sender, EventArgs e)
+        {
+            txtWatchPath.Text = SelectDirectory(txtWatchPath.Text);
+        }
+
+        private void btnSelectMovePath_Click(object sender, EventArgs e)
+        {
+            txtMovePath.Text = SelectDirectory(txtMovePath.Text);
+        }
+
+        private string SelectDirectory(string defaultPath)
+        {
+            fbd.RootFolder = Environment.SpecialFolder.MyComputer;
+            if (Directory.Exists(defaultPath))
+            {
+                fbd.SelectedPath = defaultPath;
+            }
+            else
+            {
+                string pathUser = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string pathDownload = Path.Combine(pathUser, "Downloads");
+                if (Directory.Exists(pathDownload))
+                    fbd.SelectedPath = pathDownload;
+                else
+                    fbd.SelectedPath = pathUser;
+            }
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                return fbd.SelectedPath;
+            }
+            return defaultPath;
+        }
     }
 
     public class ComboWatcherItem

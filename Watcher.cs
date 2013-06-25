@@ -21,16 +21,16 @@ namespace Ejik
         {
             get { return watchPath; }
             set 
-            { 
-                watchPath = watcher.Path = value;
-                ScanDirectory(watchPath, this.filters);
+            {
+                watchPath = watcher.Path = value.Trim('\\', ' ');
+                ScanDirectory(watchPath, movePath, this.filters);
             }
         }
 
         public string MovePath
         {
             get { return movePath; }
-            set { movePath = value; }
+            set { movePath = value.Trim('\\',' '); }
         }
 
         public string filter
@@ -42,7 +42,7 @@ namespace Ejik
                 {
                     tmp += '.' + filters[i] + '|';
                 }
-                tmp = tmp.Remove(tmp.Length - 1);
+                tmp = tmp.Trim('|');
                 return tmp;
             }
             set { this.filters = parseFilter(value); }
@@ -106,34 +106,45 @@ namespace Ejik
 
         private void OnChanged(Object source, FileSystemEventArgs e)
         {
-            if (e.Name.LastIndexOf(".") != -1 && ExtMatch(e.Name, this.filters) && !Form1.qq.Contains(e.FullPath))
+            if (e.Name.LastIndexOf(".") != -1 && ExtMatch(e.Name, this.filters) && !Form1.queFile.Contains(e.FullPath))
             {
-                Form1.qq.Add(e.FullPath);
+                Form1.queFile.Add(e.FullPath);
+                Form1.queDir.Add(this.MovePath);
             }
         }
 
-        private static void ScanDirectory(string dir, string[] filters)
+        private static void ScanDirectory(string dir, string moveDir, string[] filters)
         {
             //searching for files that already exist:
             foreach (string fileName in Directory.EnumerateFiles(dir))
             {
                 if (ExtMatch(fileName, filters))
-                    Form1.qq.Add(fileName);
+                {
+                    Form1.queFile.Add(fileName);
+                    Form1.queDir.Add(moveDir);
+                }
             }
         }
 
         public static void SaveToSettings()
         {
-            //this is pretty dumb but I still don't know how to do it better
-            string[] blankStringArray = new string[64];
-            for (int i = 0; i <= 63; i++)
+            if (Form1.MySettings.WatchPaths == null)
             {
-                blankStringArray[i] = "";
+                Form1.MySettings.WatchPaths = new string[64];
+                Form1.MySettings.MovePaths = new string[64];
+                Form1.MySettings.Filters = new string[64];
             }
-            blankStringArray.CopyTo(Form1.MySettings.WatchPaths, 0);
-            blankStringArray.CopyTo(Form1.MySettings.MovePaths, 0);
-            blankStringArray.CopyTo(Form1.MySettings.Filters, 0);
-
+            else
+            {
+                string[] blankStringArray = new string[64];
+                for (int i = 0; i <= 63; i++)
+                {
+                    blankStringArray[i] = "";
+                }
+                blankStringArray.CopyTo(Form1.MySettings.WatchPaths, 0);
+                blankStringArray.CopyTo(Form1.MySettings.MovePaths, 0);
+                blankStringArray.CopyTo(Form1.MySettings.Filters, 0);
+            }
             int index = 0;
             foreach (Watcher watcher in AllOfThem)
             {
@@ -152,7 +163,7 @@ namespace Ejik
             {
                 watcher.Dispose();
             }
-            AllOfThem.Clear();
+            //AllOfThem.Clear();
 
 
             //Watcher testWatcher = new Watcher(Application.StartupPath, Application.StartupPath + "\\_jpg\\", "*.jpg|*.jpeg|*.gif|*.png|*.bmp");
@@ -170,6 +181,7 @@ namespace Ejik
             watchPath = null;
             movePath = null;
             filters = null;
+            AllOfThem.Remove(this);
         }
     }
 }
