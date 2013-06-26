@@ -59,7 +59,7 @@ namespace Ejik
         {
             txtWatchPath.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath;
             txtMovePath.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath;
-            txtFilter.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter;
+            txtFilter.Text = ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Filter;
         }
 
         private void btnApply_Click(object sender, EventArgs e)
@@ -68,7 +68,7 @@ namespace Ejik
             {
                 ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
                 ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
-                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.filter = txtFilter.Text;
+                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Filter = txtFilter.Text;
                 Watcher.SaveToSettings();
 
                 //black magic here:
@@ -103,9 +103,9 @@ namespace Ejik
                 ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Dispose();
                 Watcher.SaveToSettings();
                 comboRules.Items.Remove(comboRules.SelectedItem);
-                txtFilter.Text = "";
-                txtMovePath.Text = "";
-                txtWatchPath.Text = "";
+                txtFilter.Text = string.Empty;
+                txtMovePath.Text = string.Empty;
+                txtWatchPath.Text = string.Empty;
             }
         }
 

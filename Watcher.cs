@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.IO;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace Ejik
 {
@@ -13,7 +14,7 @@ namespace Ejik
     {
         private string watchPath;
         private string movePath;
-        private string[] filters;
+        private string filter;
         private FileSystemWatcher watcher = new FileSystemWatcher();
 
         public static List<Watcher> AllOfThem = new List<Watcher>();
@@ -23,7 +24,7 @@ namespace Ejik
             set 
             {
                 watchPath = watcher.Path = value.Trim('\\', ' ');
-                ScanDirectory(watchPath, movePath, this.filters);
+                ScanDirectory(watchPath, movePath, filter);
             }
         }
 
@@ -33,29 +34,25 @@ namespace Ejik
             set { movePath = value.Trim('\\',' '); }
         }
 
-        public string filter
+        public string Filter
         {
-            get
-            {
-                string tmp = "";
-                for (int i = 0; i <= filters.Length - 1; i++)
-                {
-                    tmp += '.' + filters[i] + '|';
-                }
-                tmp = tmp.Trim('|');
-                return tmp;
+            get { return filter; }
+            set 
+            { 
+                filter = value;
+                ScanDirectory(WatchPath, MovePath, filter);
             }
-            set { this.filters = parseFilter(value); }
         }
 
         public Watcher(string wPath, string mPath, string filter)
         {
-            filters = parseFilter(filter);
-            MovePath = mPath;
-            WatchPath = wPath;
+            this.filter = filter;
+            this.movePath = mPath;
+            this.watchPath = wPath;
+            ScanDirectory(WatchPath, MovePath, Filter);
 
             //configuring and starting watcher:
-            //watcher.Path is already set in WatchPath property (see above)
+            watcher.Path = wPath;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
@@ -66,59 +63,24 @@ namespace Ejik
 
         private string[] parseFilter(string filter)
         {
-            List<string> result = new List<string>();
-            int j = 0;
-
-            for (int i = 0; i < filter.Length - 1; i++)
-            {
-                if (filter[i] == '.')
-                {
-                    i++;
-                    while (i < filter.Length && filter[i] != '|')
-                    {
-                        if (result.Count <= j)
-                        {
-                            result.Add(new string(filter[i],1));
-                        }
-                        else
-                        {
-                            result[j] += filter[i];
-                        }
-                        i++;
-                    }
-                    j++;
-                }
-            }
-
-            string[] result2 = result.ToArray();
-            return result2;
-        }
-
-        public static Boolean ExtMatch(string fileName, string[] filters)
-        {
-            string ext = fileName.Substring(fileName.LastIndexOf(".") + 1).ToLower();
-            foreach (string filter in filters)
-            {
-                if (ext == filter) return true;
-            }
-            return false;
+            return filter.Split('|', ',');
         }
 
         private void OnChanged(Object source, FileSystemEventArgs e)
         {
-            if (e.Name.LastIndexOf(".") != -1 && ExtMatch(e.Name, this.filters) && !Form1.queFile.Contains(e.FullPath))
+            if (checkMask(e.FullPath, Filter) && !Form1.queFile.Contains(e.FullPath))
             {
                 Form1.queFile.Add(e.FullPath);
                 Form1.queDir.Add(this.MovePath);
             }
         }
 
-        private static void ScanDirectory(string dir, string moveDir, string[] filters)
+        private static void ScanDirectory(string dir, string moveDir, string filter)
         {
             //searching for files that already exist:
             foreach (string fileName in Directory.EnumerateFiles(dir))
             {
-                if (ExtMatch(fileName, filters))
+                if (checkMask(fileName, filter))
                 {
                     Form1.queFile.Add(fileName);
                     Form1.queDir.Add(moveDir);
@@ -139,7 +101,7 @@ namespace Ejik
                 string[] blankStringArray = new string[64];
                 for (int i = 0; i <= 63; i++)
                 {
-                    blankStringArray[i] = "";
+                    blankStringArray[i] = string.Empty;
                 }
                 blankStringArray.CopyTo(Form1.MySettings.WatchPaths, 0);
                 blankStringArray.CopyTo(Form1.MySettings.MovePaths, 0);
@@ -180,8 +142,31 @@ namespace Ejik
         {
             watchPath = null;
             movePath = null;
-            filters = null;
+            filter = null;
             AllOfThem.Remove(this);
+        }
+
+        static public bool checkMask(string fileName, string input)
+        {
+            string[] exts = input.Split('|', ',', ';');
+            string pattern = string.Empty;
+            foreach (string ext in exts)
+            {
+                pattern += @"^";//признак начала строки
+                foreach (char symbol in ext)
+                    switch (symbol)
+                    {
+                        case '.': pattern += @"\."; break;
+                        case '?': pattern += @"."; break;
+                        case '*': pattern += @".*"; break;
+                        default: pattern += symbol; break;
+                    }
+                pattern += @"$|";//признак окончания строки
+            }
+            if (pattern.Length == 0) return false;
+            pattern = pattern.Remove(pattern.Length - 1);
+            Regex mask = new Regex(pattern, RegexOptions.IgnoreCase);
+            return mask.IsMatch(System.IO.Path.GetFileName(fileName));
         }
     }
 }
