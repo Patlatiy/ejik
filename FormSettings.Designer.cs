@@ -207,9 +207,9 @@
             this.chkStartup.AutoSize = true;
             this.chkStartup.Location = new System.Drawing.Point(22, 136);
             this.chkStartup.Name = "chkStartup";
-            this.chkStartup.Size = new System.Drawing.Size(93, 17);
+            this.chkStartup.Size = new System.Drawing.Size(113, 17);
             this.chkStartup.TabIndex = 6;
-            this.chkStartup.Text = "Run at startup";
+            this.chkStartup.Text = "Run Ejik at startup";
             this.chkStartup.UseVisualStyleBackColor = true;
             // 
             // FormSettings
@@ -230,6 +230,7 @@
             this.MaximizeBox = false;
             this.Name = "FormSettings";
             this.Text = "Settings";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormSettings_FormClosed);
             this.Load += new System.EventHandler(this.FormSettings_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

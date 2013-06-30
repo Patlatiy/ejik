@@ -13,7 +13,8 @@ namespace Ejik
 {
     public partial class FormSettings : Form
     {
-        Microsoft.Win32.RegistryKey rkApp = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        private Microsoft.Win32.RegistryKey rkApp = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        public static FormSettings curForm = null;
 
         public FormSettings()
         {
@@ -32,6 +33,7 @@ namespace Ejik
             {
                 chkStartup.Checked = true;
             }
+            curForm = this;
         }
 
         private void FillRules()
@@ -140,6 +142,11 @@ namespace Ejik
                 return fbd.SelectedPath;
             }
             return defaultPath;
+        }
+
+        private void FormSettings_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            curForm = null;
         }
     }
 

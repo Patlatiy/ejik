@@ -17,8 +17,6 @@ namespace Ejik
     {
         public static List<String> queFile = new List<string>();
         public static List<String> queDir = new List<string>();
-        private static Label lbl1;
-        private static Label lbl2;
         public static EjikSettings MySettings = new EjikSettings();
         public static Form1 LastInstance;
 
@@ -35,8 +33,6 @@ namespace Ejik
             LastInstance = this;
             loadSettings();
             moveTimer.Start();
-            lbl1 = this.label1;
-            lbl2 = this.label2;
             Watcher.LoadFromSettings();
             SetTooltip();
 
@@ -44,21 +40,31 @@ namespace Ejik
             startupTimer.Interval = 100;
             startupTimer.Tick += StartupTimer_Tick;
             startupTimer.Start();
+
+            this.txtMoved.Text = Timestamp() + "Ejik welcome you!";
         }
 
         private void moveTimer_Tick(object sender, EventArgs e)
         {
-            lbl2.Text = "Files pending:" + Environment.NewLine;
+            txtPending.Clear();
             if (queFile.Count != 0)
+            {
+                this.lblPending.Text = "Files pending: " + queFile.Count.ToString();
                 for (int i = 0; i < queFile.Count; i++)
                 {
-                    lbl2.Text += queFile[i].Substring(queFile[i].LastIndexOf("\\") + 1) + Environment.NewLine;
+                    txtPending.Text = queFile[i].Substring(queFile[i].LastIndexOf("\\") + 1) + Environment.NewLine + txtPending.Text;
                     if (MoveFile(queFile[i], queDir[i]))
                     {
                         queDir.RemoveAt(i);
                         queFile.RemoveAt(i);
+                        i--;
                     }
                 }
+            }
+            else
+            {
+                this.lblPending.Text = "No files pending";
+            }
         }
 
         private static Boolean MoveFile(string path, string movePath)
@@ -79,18 +85,21 @@ namespace Ejik
                     if (File.GetLastWriteTime(path).AddSeconds(10) < DateTime.Now) //moving file only if last write was 10 seconds ago or farther
                     {
                         File.Move(path, path2);
-                        lbl1.Text = "Successfully moved " + fileName + fileExt + Environment.NewLine + lbl1.Text;
-                        lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
+                        Form1.LastInstance.txtMoved.Text = Timestamp() + "Successfully moved " + fileName + fileExt + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
                         return true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                lbl1.Text = "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + lbl1.Text;
-                lbl1.Text.Remove(lbl1.Text.LastIndexOf(Environment.NewLine));
+                Form1.LastInstance.txtMoved.Text = Timestamp() + "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
             }
             return false;
+        }
+
+        private static string Timestamp()
+        {
+            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] ";
         }
 
         private void myNotifyIcon_DoubleClick(object sender, EventArgs e)
@@ -117,14 +126,15 @@ namespace Ejik
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (FormSettings.ActiveForm == null)
+            if (FormSettings.curForm == null)
             {
                 Form frmSettings = new FormSettings();
                 frmSettings.Show();
             }
             else 
             {
-                FormSettings.ActiveForm.Show();
+                FormSettings.curForm.Show();
+                FormSettings.curForm.BringToFront();
             }
         }
 
@@ -156,6 +166,21 @@ namespace Ejik
             this.Hide();
             ((Timer)sender).Stop();
             ((Timer)sender).Dispose();
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void btnMinimize_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            settingsToolStripMenuItem_Click(sender, e);
         }
     }
 }
