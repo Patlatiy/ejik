@@ -19,7 +19,7 @@ namespace Ejik
         public static List<String> queDir = new List<string>();
         public static EjikSettings MySettings = new EjikSettings();
         public static Form1 LastInstance;
-
+        private static long filesMoved = 0;
        
 
         public Form1()
@@ -31,7 +31,6 @@ namespace Ejik
         private void Form1_Load(object sender, EventArgs e)
         {
             LastInstance = this;
-            loadSettings();
             moveTimer.Start();
             Watcher.LoadFromSettings();
             SetTooltip();
@@ -86,6 +85,8 @@ namespace Ejik
                     {
                         File.Move(path, path2);
                         Form1.LastInstance.txtMoved.Text = Timestamp() + "Successfully moved " + fileName + fileExt + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
+                        filesMoved++;
+                        Form1.LastInstance.SetTooltip();
                         return true;
                     }
                 }
@@ -143,11 +144,6 @@ namespace Ejik
             Application.Exit();
         }
 
-        public void loadSettings()
-        {
-            
-        }
-
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             myNotifyIcon.Visible = false;
@@ -158,6 +154,8 @@ namespace Ejik
             string tooltip = Application.ProductName + " version " + Application.ProductVersion;
             if (Watcher.AllOfThem.Count > 0)
                 tooltip += Environment.NewLine + "Directories watching: " + Watcher.AllOfThem.Count.ToString();
+            if (filesMoved != 0)
+                tooltip += Environment.NewLine + "Files moved: " + filesMoved.ToString();
             myNotifyIcon.Text = tooltip;
         }
 

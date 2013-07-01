@@ -43,7 +43,10 @@
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnMinimize = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.ejikToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.notifyMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // moveTimer
@@ -133,7 +136,7 @@
             // 
             // btnSettings
             // 
-            this.btnSettings.Location = new System.Drawing.Point(9, 176);
+            this.btnSettings.Location = new System.Drawing.Point(9, 27);
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.Size = new System.Drawing.Size(82, 23);
             this.btnSettings.TabIndex = 1;
@@ -143,7 +146,7 @@
             // 
             // btnMinimize
             // 
-            this.btnMinimize.Location = new System.Drawing.Point(9, 205);
+            this.btnMinimize.Location = new System.Drawing.Point(9, 56);
             this.btnMinimize.Name = "btnMinimize";
             this.btnMinimize.Size = new System.Drawing.Size(82, 23);
             this.btnMinimize.TabIndex = 2;
@@ -153,13 +156,24 @@
             // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(9, 234);
+            this.btnClose.Location = new System.Drawing.Point(9, 85);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(82, 23);
             this.btnClose.TabIndex = 3;
             this.btnClose.Text = "Stop && Exit";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::Ejik.Properties.Resources.ejik91;
+            this.pictureBox1.InitialImage = global::Ejik.Properties.Resources.ejik91;
+            this.pictureBox1.Location = new System.Drawing.Point(3, 184);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(91, 91);
+            this.pictureBox1.TabIndex = 22;
+            this.pictureBox1.TabStop = false;
+            this.ejikToolTip.SetToolTip(this.pictureBox1, "Ejik likes you!");
             // 
             // Form1
             // 
@@ -173,6 +187,7 @@
             this.Controls.Add(this.txtMoved);
             this.Controls.Add(this.lblPending);
             this.Controls.Add(this.lblMoved);
+            this.Controls.Add(this.pictureBox1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -183,6 +198,7 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.notifyMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -203,6 +219,8 @@
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Button btnMinimize;
         private System.Windows.Forms.Button btnClose;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ToolTip ejikToolTip;
 
     }
 }
