@@ -68,14 +68,29 @@ namespace Ejik
         {
             if (comboRules.SelectedIndex != -1)
             {
-                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
-                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
-                ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Filter = txtFilter.Text;
-                Watcher.SaveToSettings();
+                if (!Directory.Exists(txtWatchPath.Text))
+                {
+                    MessageBox.Show("Watch directory " + txtWatchPath.Text + " doesn't exist.", "Something is wrong...", MessageBoxButtons.OK);
+                }
+                else if (!Directory.Exists(txtMovePath.Text))
+                {
+                    MessageBox.Show("Move directory " + txtMovePath.Text + " doesn't exist.", "Something is wrong...", MessageBoxButtons.OK);
+                }
+                else if (txtFilter.Text == "")
+                {
+                    MessageBox.Show("The filter is empty. Please enter filter. You can use \"*\" and \"?\" symbols. Separate filters by \",\" or \"|\".");
+                }
+                else
+                {
+                    ((ComboWatcherItem)comboRules.SelectedItem).Watcher.WatchPath = txtWatchPath.Text;
+                    ((ComboWatcherItem)comboRules.SelectedItem).Watcher.MovePath = txtMovePath.Text;
+                    ((ComboWatcherItem)comboRules.SelectedItem).Watcher.Filter = txtFilter.Text;
+                    Watcher.SaveToSettings();
 
-                //black magic here:
-                ((ComboWatcherItem)comboRules.SelectedItem).Text = txtWatchPath.Text;
-                typeof(ComboBox).InvokeMember("RefreshItems", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.InvokeMethod, null, comboRules, new object[] { });
+                    //black magic here:
+                    ((ComboWatcherItem)comboRules.SelectedItem).Text = txtWatchPath.Text;
+                    typeof(ComboBox).InvokeMember("RefreshItems", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.InvokeMethod, null, comboRules, new object[] { });
+                }
             }
 
             if (chkStartup.Checked)

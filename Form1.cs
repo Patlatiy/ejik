@@ -77,12 +77,22 @@ namespace Ejik
                     fileName = fileName.Substring(0, fileName.LastIndexOf("."));
                     if (!Directory.Exists(movePath)) Directory.CreateDirectory(movePath);
                     string path2 = movePath + "\\" + fileName + fileExt;
-                    for (int i = 1; File.Exists(path2); i++)
+                    //moving file only if last write was 10 seconds ago or farther, so we don't move the files that are still being downloaded:
+                    if (File.GetLastWriteTime(path).AddSeconds(10) < DateTime.Now) 
                     {
-                        path2 = movePath + fileName + " (" + i.ToString() + ")" + fileExt;
-                    }
-                    if (File.GetLastWriteTime(path).AddSeconds(10) < DateTime.Now) //moving file only if last write was 10 seconds ago or farther
-                    {
+                        for (int i = 1; File.Exists(path2); i++)
+                        {
+                            if (FileCompare(path, path2))
+                            {
+                                File.Delete(path);
+                                Form1.LastInstance.txtMoved.Text = Timestamp() + "Such file already exists and is equal to a new file: " + fileName + fileExt + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
+                                return true;
+                            }
+                            else
+                            {
+                                path2 = movePath + "\\" + fileName + " (" + i.ToString() + ")" + fileExt;
+                            }
+                        }
                         File.Move(path, path2);
                         Form1.LastInstance.txtMoved.Text = Timestamp() + "Successfully moved " + fileName + fileExt + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
                         filesMoved++;
@@ -93,7 +103,7 @@ namespace Ejik
             }
             catch (Exception ex)
             {
-                Form1.LastInstance.txtMoved.Text = Timestamp() + "Move failed!" + ex.HResult.ToString() + ex.ToString() + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
+                Form1.LastInstance.txtMoved.Text = Timestamp() + "Move failed!" + ex.HResult.ToString() + " " + ex.ToString() + Environment.NewLine + Form1.LastInstance.txtMoved.Text;
             }
             return false;
         }
@@ -179,6 +189,61 @@ namespace Ejik
         private void btnSettings_Click(object sender, EventArgs e)
         {
             settingsToolStripMenuItem_Click(sender, e);
+        }
+
+        // This method accepts two strings the represent two files to 
+        // compare. A return value of 0 indicates that the contents of the files
+        // are the same. A return value of any other value indicates that the 
+        // files are not the same.
+        private static bool FileCompare(string file1, string file2)
+        {
+            int file1byte;
+            int file2byte;
+            FileStream fs1;
+            FileStream fs2;
+
+            // Determine if the same file was referenced two times.
+            if (file1 == file2)
+            {
+                // Return true to indicate that the files are the same.
+                return true;
+            }
+
+            // Open the two files.
+            fs1 = new FileStream(file1, FileMode.Open, FileAccess.Read);
+            fs2 = new FileStream(file2, FileMode.Open, FileAccess.Read);
+
+            // Check the file sizes. If they are not the same, the files 
+            // are not the same.
+            if (fs1.Length != fs2.Length)
+            {
+                // Close the file
+                fs1.Close();
+                fs2.Close();
+
+                // Return false to indicate files are different
+                return false;
+            }
+
+            // Read and compare a byte from each file until either a
+            // non-matching set of bytes is found or until the end of
+            // file1 is reached.
+            do
+            {
+                // Read one byte from each file.
+                file1byte = fs1.ReadByte();
+                file2byte = fs2.ReadByte();
+            }
+            while ((file1byte == file2byte) && (file1byte != -1));
+
+            // Close the files.
+            fs1.Close();
+            fs2.Close();
+
+            // Return the success of the comparison. "file1byte" is 
+            // equal to "file2byte" at this point only if the files are 
+            // the same.
+            return ((file1byte - file2byte) == 0);
         }
     }
 }

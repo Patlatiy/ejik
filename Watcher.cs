@@ -80,7 +80,7 @@ namespace Ejik
             //searching for files that already exist:
             foreach (string fileName in Directory.EnumerateFiles(dir))
             {
-                if (checkMask(fileName, filter))
+                if (checkMask(fileName, filter) && !Form1.queFile.Contains(fileName))
                 {
                     Form1.queFile.Add(fileName);
                     Form1.queDir.Add(moveDir);
@@ -148,6 +148,7 @@ namespace Ejik
 
         static public bool checkMask(string fileName, string input)
         {
+            if (fileName == null || input == null) return false;
             string[] exts = input.Split('|', ',', ';');
             string pattern = string.Empty;
             foreach (string ext in exts)
